@@ -6,7 +6,7 @@ import path from 'node:path';
 import type { AddressInfo } from 'node:net';
 import { Config } from '../src/config/env.js';
 import { applyPageChanges } from '../src/ops/pages.js';
-import { listPageSummaries, renderAnswer, viewPage, viewerUrl } from '../src/ops/viewer.js';
+import { listPageSummaries, renderAnswer, viewGraph, viewPage, viewerUrl } from '../src/ops/viewer.js';
 import { fetchToRaw, isUrl, webPageToMarkdown } from '../src/ops/fetch.js';
 import { ingestSource, pendingSources } from '../src/ops/ingest.js';
 import { lintStructure } from '../src/wiki/lint.js';
@@ -40,6 +40,19 @@ for (const format of ['markdown', 'html'] as const) {
     assert.deepEqual(v.sourceFiles.map((s) => [s.path, s.exists]), [['raw/paper.pdf', true]]);
     assert.deepEqual(listPageSummaries(paths).map((p) => p.id), ['concepts/analytical-engine', 'entities/ada-lovelace', 'sources/paper']);
     assert.throws(() => viewPage(paths, 'demo', 'nope'), /Page not found/);
+  });
+}
+
+for (const format of ['markdown', 'html'] as const) {
+  test(`viewGraph (${format} wiki): pages, links once per direction, cited sources, broken links`, () => {
+    const paths = pagesFor(format);
+    applyPageChanges(paths, [{ op: 'create', path: 'concepts/orphan', content: '---\ntitle: Orphan\nsources: [raw/gone.pdf]\n---\n# Orphan\n\nMentions [[nowhere]] twice: [[nowhere]].' }]);
+    const g = viewGraph(paths, 'demo');
+    assert.equal(g.format, format);
+    assert.deepEqual(g.nodes.map((n) => [n.id, n.degree]), [['concepts/analytical-engine', 1], ['concepts/orphan', 0], ['entities/ada-lovelace', 2], ['sources/paper', 1]]);
+    assert.deepEqual(g.links.map((l) => `${l.from}>${l.to}`).sort(), ['concepts/analytical-engine>entities/ada-lovelace', 'entities/ada-lovelace>concepts/analytical-engine', 'entities/ada-lovelace>sources/paper', 'sources/paper>entities/ada-lovelace']);
+    assert.deepEqual(g.sources, [{ path: 'raw/gone.pdf', exists: false, pages: ['concepts/orphan'] }, { path: 'raw/paper.pdf', exists: true, pages: ['entities/ada-lovelace'] }]);
+    assert.deepEqual(g.missing.map((m) => m.from), ['concepts/orphan', 'concepts/orphan']);
   });
 }
 

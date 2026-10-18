@@ -161,5 +161,6 @@ copy stays — and is ingested again, so the wiki pages are updated from the new
 ## 13. Browse wikis in a desktop app
 
 `wiki-explorer` (a SwiftUI macOS app next to the llm-wiki repo) is a graphical front end built entirely on
-this CLI's JSON: `wikis list`, `pages`, `show`, `search`, `query`, `ingest` (files and URLs) and `init`. It
-renders pages from `show --json` and follows the `llmwiki://` links. Any other viewer can do the same.
+this CLI's JSON: `wikis list`, `pages`, `show`, `graph`, `search`, `query`, `ingest` (files and URLs) and `init`. It
+renders pages from `show --json`, follows the `llmwiki://` links, and draws the wiki as an interactive graph
+from `graph --json`. Any other viewer can do the same.

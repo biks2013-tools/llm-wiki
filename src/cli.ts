@@ -19,7 +19,7 @@ import { formatLintReport, lintStructure } from './wiki/lint.js';
 import { initWiki, isExistingWiki } from './ops/init.js';
 import { linkHtmlPages } from './ops/pages.js';
 import { convertToHtml } from './ops/convert.js';
-import { listPageSummaries, renderAnswer, viewPage } from './ops/viewer.js';
+import { listPageSummaries, renderAnswer, viewGraph, viewPage } from './ops/viewer.js';
 import { checkSources, chromiumRenderer, fetchToRaw, isUrl, type PageRenderer, type SourceCheck } from './ops/fetch.js';
 import { browserPath } from './config/settings.js';
 import { parseWikiFormat } from './wiki/format.js';
@@ -669,6 +669,24 @@ program
       return;
     }
     process.stdout.write(`${v.title}  (${v.type}, ${v.path})\n${v.summary ? `${v.summary}\n` : ''}\nlinks to: ${v.links.map((l) => l.id).join(', ') || 'none'}\nlinked from: ${v.backlinks.map((l) => l.id).join(', ') || 'none'}\n`);
+  });
+
+program
+  .command('graph')
+  .description('the wiki as a graph: pages (nodes), the links between them, the source files they cite, and broken links')
+  .option('--json', 'machine-readable output: {wiki, format, nodes:[{id, title, type, summary, degree}], links:[{from, to}], sources:[{path, exists, pages}], missing:[{from, target}]}', false)
+  .action(async (opts: { json: boolean }) => {
+    const paths = await openWiki(loadConfig(), 'graph');
+    const g = viewGraph(paths, wikiLabel(paths));
+    if (opts.json) {
+      process.stdout.write(`${JSON.stringify(g, null, 2)}\n`);
+      return;
+    }
+    const orphans = g.nodes.filter((n) => n.degree === 0);
+    const hubs = [...g.nodes].sort((a, b) => b.degree - a.degree).slice(0, 10).filter((n) => n.degree > 0);
+    process.stdout.write(`${g.nodes.length} pages, ${g.links.length} links, ${g.sources.length} source files, ${g.missing.length} broken links, ${orphans.length} unlinked pages\n`);
+    if (hubs.length) process.stdout.write(`\nmost connected:\n${hubs.map((n) => `  ${String(n.degree).padStart(4)}  ${n.id}`).join('\n')}\n`);
+    if (orphans.length) process.stdout.write(`\nunlinked:\n${orphans.map((n) => `  ${n.id}`).join('\n')}\n`);
   });
 
 program

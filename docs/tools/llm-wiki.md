@@ -142,6 +142,7 @@
         | `sources check [--json]` / `sources update [--dry-run] [--json]` | Compare every outside source (downloaded URLs, files ingested from outside the wiki) with its latest raw copy by SHA-256 — URLs via a conditional request first, web pages by the hash of their readable or rendered text — and re-ingest the changed ones as new dated raw originals |
         | `pages [--type t] [--json]` | List the pages of the selected wiki: id, path, title, type, summary, updated, sources |
         | `show <page> [--json]` | One page for viewers: metadata, the body as sanitised HTML with `llmwiki://open?wiki=&page=` / `&raw=` links, outgoing links, backlinks, source files |
+        | `graph [--json]` | The whole wiki as a graph for viewers: pages (with their link counts), page-to-page links, the source files each page cites, broken links; without `--json`, counts, hubs and unlinked pages |
         | `log [--last n] [--kind k] [--json]` | Show recent entries from `wiki/log.md` / `wiki/log.html` |
         | `guide [topic] [--topics] [--json]` | Print the complete manual for people and AI agents (see "Built-in guide") |
         | `config` | Print resolved configuration and which tier (shell / tool-agents / local / CLI) each value came from |

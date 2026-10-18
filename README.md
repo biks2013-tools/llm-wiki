@@ -197,7 +197,7 @@ Pages that build their content with JavaScript are detected and printed to PDF i
 
 ## Wiki Explorer (desktop app)
 
-[`wiki-explorer`](../wiki-explorer) is a SwiftUI macOS app built on this CLI: browse the registered wikis and their pages, follow links and backlinks, search one or all wikis, ask questions with clickable source citations, add files or URLs, and create wikis. It uses `pages --json`, `show --json` (pages rendered to HTML with `llmwiki://` links) and the citations in `query --json`.
+[`wiki-explorer`](../wiki-explorer) is a SwiftUI macOS app built on this CLI: browse the registered wikis and their pages, follow links and backlinks, search one or all wikis, ask questions with clickable source citations, add files or URLs, and create wikis. It uses `pages --json`, `show --json` (pages rendered to HTML with `llmwiki://` links), `graph --json` (its interactive graph view) and the citations in `query --json`.
 
 ## Develop
 

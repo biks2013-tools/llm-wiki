@@ -207,3 +207,73 @@ export function renderAnswer(answer: string, wikis: Array<{ name: string; paths:
 export function pageByPath(paths: WikiPaths, rel: string): Page {
   return readPage(paths, path.join(paths.root, rel));
 }
+
+export interface GraphNode {
+  id: string;
+  title: string;
+  type: string;
+  summary: string | null;
+  /** Distinct pages linked to or from this page. */
+  degree: number;
+}
+
+export interface GraphView {
+  wiki: string;
+  format: string;
+  nodes: GraphNode[];
+  /** Page-to-page links, one per pair and direction (`from` links to `to`); self-links are left out. */
+  links: Array<{ from: string; to: string }>;
+  /** The files under raw/ that pages name in `sources`, with the pages that cite them. */
+  sources: Array<{ path: string; exists: boolean; pages: string[] }>;
+  /** Links whose target page does not exist. */
+  missing: Array<{ from: string; target: string }>;
+}
+
+/** The whole wiki as a graph for viewers: pages, the links between them, and the source files behind them. */
+export function viewGraph(paths: WikiPaths, wiki: string): GraphView {
+  const pages = listPages(paths);
+  const resolver = new LinkResolver(pages);
+  const links: GraphView['links'] = [];
+  const missing: GraphView['missing'] = [];
+  const seen = new Set<string>();
+  const neighbours = new Map(pages.map((p) => [p.id, new Set<string>()]));
+  for (const page of pages) {
+    for (const l of page.links) {
+      if (l.target.startsWith('raw/')) continue;
+      const t = resolver.resolve(l.target, page.id);
+      if (!t) {
+        missing.push({ from: page.id, target: l.target });
+        continue;
+      }
+      const key = `${page.id}\u0000${t.id}`;
+      if (t.id === page.id || seen.has(key)) continue;
+      seen.add(key);
+      links.push({ from: page.id, to: t.id });
+      neighbours.get(page.id)!.add(t.id);
+      neighbours.get(t.id)!.add(page.id);
+    }
+  }
+  const cited = new Map<string, string[]>();
+  for (const page of pages) {
+    for (const s of asStringList(page.frontmatter.sources)) {
+      const list = cited.get(s) ?? [];
+      if (!list.includes(page.id)) list.push(page.id);
+      cited.set(s, list);
+    }
+  }
+  return {
+    wiki,
+    format: paths.format.name,
+    nodes: pages.map((p) => ({ ...pick(summaryOf(p)), degree: neighbours.get(p.id)!.size })),
+    links,
+    sources: [...cited].sort(([a], [b]) => a.localeCompare(b)).map(([s, ids]) => {
+      const abs = path.join(paths.root, s);
+      return { path: s, exists: abs.startsWith(paths.root + path.sep) && fs.existsSync(abs), pages: ids };
+    }),
+    missing,
+  };
+}
+
+function pick(s: PageSummary): Omit<GraphNode, 'degree'> {
+  return { id: s.id, title: s.title, type: s.type, summary: s.summary };
+}

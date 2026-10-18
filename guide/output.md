@@ -72,6 +72,19 @@ links resolved. Links use one URL scheme a viewer can intercept: `llmwiki://open
 for wiki pages, `llmwiki://open?wiki=<name>&raw=<raw/path>` for source files; external links are unchanged.
 Links written without a display name show the page title.
 
+## `graph --json`
+```json
+{ "wiki": "work", "format": "html",
+  "nodes": [{ "id": "concepts/deploy", "title": "Deploy pipeline", "type": "concept", "summary": "…", "degree": 4 }],
+  "links": [{ "from": "concepts/deploy", "to": "entities/ci" }],
+  "sources": [{ "path": "raw/notes.md", "exists": true, "pages": ["sources/notes", "concepts/deploy"] }],
+  "missing": [{ "from": "concepts/deploy", "target": "rollbacks" }] }
+```
+The whole wiki as a graph for viewers. `links` has one entry per pair and direction (a page linking to itself
+is left out); `degree` counts the distinct pages linked to or from a page. `sources` lists the files named in
+pages' `sources` metadata with the pages citing them; `missing` lists links to pages that do not exist.
+Without `--json`: counts, the most connected pages, and the pages no other page links to or from.
+
 ## `ingest --json`
 ```json
 { "wiki": "work", "dryRun": false, "results": [

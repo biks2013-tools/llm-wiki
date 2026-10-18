@@ -47,6 +47,7 @@ value into any `.env` file and never print API keys.**
 | add a web page / online document | `llm-wiki --wiki X ingest <https-url> --json` (downloaded into `raw/web/`) | yes |
 | check web pages / outside files for changes | `llm-wiki --wiki X sources check --json`; re-ingest changed ones with `sources update --json` (costs LLM calls; ask first) | check: no |
 | list a wiki's pages / read one page | `llm-wiki --wiki X pages --json` / `llm-wiki --wiki X show <id> --json` | no |
+| how the pages connect: hubs, unlinked pages, broken links | `llm-wiki --wiki X graph` (`--json` for nodes, links, sources, missing) | no |
 | preview what an ingest would change | `llm-wiki --wiki X ingest <file> --dry-run --json` | yes |
 | ingest everything pending in `raw/` | `llm-wiki --wiki X ingest --json` | yes |
 | convert a PDF/DOCX/PPTX/XLSX/image to markdown only, to review first | `llm-wiki --wiki X parse <file> --json`, read `raw/<file>.<ext>.md`, then `ingest raw/<file>.<ext>.md --json` | yes |
